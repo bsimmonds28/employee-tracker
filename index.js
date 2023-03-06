@@ -22,9 +22,6 @@ const initialQ = () => {
             },
         ])
         .then((data) => {
-            console.log(data);
-            console.log(data.initialQ);
-
             switch (data.initialQ) {
 
                 case 'View all departments':
@@ -165,8 +162,66 @@ const addEmployee = () => {
 
 //function: WHEN I choose to update an employee role THEN I am prompted to select an employee to update and their new role and this information is updated in the database
 const updateRole = () => {
+    queries.viewEmployeeList().then(([rows,fields]) => {
+        const employeeArr = [];
+        for (var i = 0; i < rows.length; i++) {
+            let employee = rows[i].id + " " + rows[i].first_name + " " + rows[i].last_name;
+            employeeArr.push(employee);
+        }
+        inquirer
+    .prompt([
+        {
+            type: 'list',
+            message: 'Select an employee to update',
+            name: 'employee',
+            choices: employeeArr,
+        },
+    ])
+    .then((data) => {
+        console.log(data);
+        // queries.updateRole(data.employee, data.role).then(([rows,fields]) => {
+        //     console.log(`${data.employee}'s role has been updated to ${data.role}!`)
+        //     initialQ();
+        })
+    })
+}
+    //have to wait to ask inquirer until get result
+    //async await or put it in a second .then 
+    //variable local 
+/*
+    queries.viewRoles().then(([rows,fields]) => {
+        const roleArr = rows;
+        return roleArr;
+    });
+*/
+/*
+    console.log(employeeArr);
 
-};
+    inquirer
+    .prompt([
+        {
+            type: 'list',
+            message: 'Select an employee to update',
+            name: 'employee',
+            choices: employeeArr,
+        },
+        /*
+        {
+            type: 'list',
+            message: 'Select their new role',
+            name: 'role',
+            choices: roleArr,
+        },
+    ])
+    .then((data) => {
+        queries.updateRole(data.employee, data.role).then(([rows,fields]) => {
+            console.log(`${data.employee}'s role has been updated to ${data.role}!`)
+            initialQ();
+        })
+    })
+    )
+*/
+
 
 /*
 npm i inquirer@8.2.4
@@ -182,4 +237,6 @@ How do I enter a manger's name?
 #1 How do I use insomnia?
 #2 When do you use a query.sql file?
 #3 When do you use body.variablename? req? params?
+req.body - front end has a body that gets sent to request
+console log the req.body will contain 
 */
