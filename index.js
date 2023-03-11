@@ -101,6 +101,12 @@ const addDepartment = () => {
 
 //function: WHEN I choose to add a role THEN I am prompted to enter the name, salary, and department for the role and that role is added to the database
 const addRole = () => {
+    queries.viewDepartments().then(([rows,fields]) => {
+        const departmentArr = [];
+        for (var i = 0; i < rows.length; i++) {
+            let department = rows[i].id + "." + " " + rows[i].dep_name;
+            departmentArr.push(department);
+        }
     inquirer
     .prompt([
         {
@@ -114,115 +120,129 @@ const addRole = () => {
             name: 'salary',
         },
         {
-            type: 'input',
-            message: "Enter the department name for the role",
+            type: 'list',
+            message: "What department does it belong to?",
             name: 'dep_name',
+            choices: departmentArr,
         },
     ])
     .then((data) => {
-        queries.addRole(data.role_name, data.salary, data.dep_name).then(([rows,fields]) => {
+        let id = data.dep_name.slice(0, 1);
+        console.log(id);
+        queries.addRole(data.role_name, data.salary, id).then(([rows,fields]) => {
             console.table(rows);
             initialQ();
         })
     })
+})
 };
 
 //function: WHEN I choose to add an employee THEN I am prompted to enter the employee’s first name, last name, role, and manager, and that employee is added to the database
 const addEmployee = () => {
-    inquirer
-    .prompt([
-        {
-            type: 'input',
-            message: "Enter the first name of the employee",
-            name: 'first_name',
-        },
-        {
-            type: 'input',
-            message: "Enter the last name of the employee",
-            name: 'last_name',
-        },
-        {
-            type: 'input',
-            message: "Enter the employee's role",
-            name: 'role',
-        },
-        {
-            type: 'input',
-            message: "Enter the employee's manager",
-            name: 'manager',
-        },
-    ])
-    .then((data) => {
-        queries.addEmployee(data.first_name, data.last_name, data.role, data.manager).then(([rows,fields]) => {
-            console.table(rows);
-            initialQ();
+    queries.viewRoles().then(([rows,fields]) => {
+        const roleArr = [];
+        for (var i = 0; i < rows.length; i++) {
+            let role = rows[i].id + "." + " " + rows[i].title;
+            roleArr.push(role);
+        }
+        inquirer
+        .prompt([
+            {
+                type: 'input',
+                message: "Enter the first name of the employee",
+                name: 'first_name',
+            },
+            {
+                type: 'input',
+                message: "Enter the last name of the employee",
+                name: 'last_name',
+            },
+            {
+                type: 'list',
+                message: "Enter the employee's role",
+                name: 'role',
+                choices: roleArr,
+            },
+        ])
+        .then((data) => {
+            let fname = data.first_name;
+            let lname = data.last_name;
+            let roleId = data.role.slice(0, 1);
+            queries.viewEmployees().then(([rows,fields]) => {
+                const employeeArr = [];
+                for (var i = 0; i < rows.length; i++) {
+                    let employee = rows[i].id + "." + " " + rows[i].first_name + " " + rows[i].last_name;
+                    employeeArr.push(employee);
+                }
+                inquirer
+                .prompt([
+                    {
+                    type: 'list',
+                    message: "Select the employee's manager",
+                    name: 'employee',
+                    choices: employeeArr,
+                    },
+                ])
+                .then((data) => {
+                    let id = data.employee.slice(0, 1);
+                    queries.addEmployee(fname, lname, roleId, id).then(([rows,fields]) => {
+                        console.table(rows);
+                        initialQ();
+                    })
+                })
+            })
         })
     })
 };
 
 //function: WHEN I choose to update an employee role THEN I am prompted to select an employee to update and their new role and this information is updated in the database
 const updateRole = () => {
-    queries.viewEmployeeList().then(([rows,fields]) => {
+    queries.viewEmployees().then(([rows,fields]) => {
         const employeeArr = [];
         for (var i = 0; i < rows.length; i++) {
-            let employee = rows[i].id + " " + rows[i].first_name + " " + rows[i].last_name;
+            let employee = rows[i].id + "." + " " + rows[i].first_name + " " + rows[i].last_name;
             employeeArr.push(employee);
         }
         inquirer
-    .prompt([
-        {
+        .prompt([
+            {
             type: 'list',
             message: 'Select an employee to update',
             name: 'employee',
             choices: employeeArr,
-        },
-    ])
-    .then((data) => {
-        console.log(data);
-        // queries.updateRole(data.employee, data.role).then(([rows,fields]) => {
-        //     console.log(`${data.employee}'s role has been updated to ${data.role}!`)
-        //     initialQ();
+            },
+        ])
+        .then((data) => {
+            let employeeSelected = data.employee;
+            queries.viewRoles().then(([rows,fields]) => {
+                const roleArr = [];
+                for (var i = 0; i < rows.length; i++) {
+                    let role = rows[i].id + "." + " " + rows[i].title;
+                    roleArr.push(role);
+                }
+                inquirer
+                .prompt([
+                {
+                    type: 'list',
+                    message: 'Select the new role',
+                    name: 'role',
+                    choices: roleArr,
+                },
+                ])
+                .then((data) => {
+                    let id = employeeSelected.slice(0, 1);
+                    let employee = employeeSelected.slice(3)
+                    let roleId = data.role.slice(0, 1);
+                    let role = data.role.slice(3);
+                    queries.updateRole(id, roleId).then(([rows,fields]) => {
+                        console.log(`${employee}'s role has been updated to ${role}!`)
+                        initialQ();
+                    })
+                })
+            })
         })
     })
 }
-    //have to wait to ask inquirer until get result
-    //async await or put it in a second .then 
-    //variable local 
-/*
-    queries.viewRoles().then(([rows,fields]) => {
-        const roleArr = rows;
-        return roleArr;
-    });
-*/
-/*
-    console.log(employeeArr);
-
-    inquirer
-    .prompt([
-        {
-            type: 'list',
-            message: 'Select an employee to update',
-            name: 'employee',
-            choices: employeeArr,
-        },
-        /*
-        {
-            type: 'list',
-            message: 'Select their new role',
-            name: 'role',
-            choices: roleArr,
-        },
-    ])
-    .then((data) => {
-        queries.updateRole(data.employee, data.role).then(([rows,fields]) => {
-            console.log(`${data.employee}'s role has been updated to ${data.role}!`)
-            initialQ();
-        })
-    })
-    )
-*/
-
-
 /*
 npm i inquirer@8.2.4
 npm install express
